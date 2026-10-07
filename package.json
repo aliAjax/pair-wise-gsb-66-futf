@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite --port 18466",
     "build": "vue-tsc --noEmit -p tsconfig.app.json && vite build",
-    "preview": "vite preview --port 18466"
+    "preview": "vite preview --port 18466",
+    "verify": "esbuild scripts/verify.ts --bundle --platform=node --format=esm --outfile=scripts/verify.mjs --log-level=warning && node scripts/verify.mjs"
   },
   "dependencies": {
     "@apollo/client": "^3.12.4",
