@@ -21,6 +21,8 @@ const headers = [
   { title: '严重度', key: 'severity' },
   { title: '实测/限值', key: 'value' },
   { title: '状态', key: 'status' },
+  { title: '检测版本', key: 'inspectionVersion' },
+  { title: '纠偏批次', key: 'batch' },
   { title: '责任工区', key: 'owner' },
   { title: '版本', key: 'version' },
   { title: '', key: 'actions' }
@@ -30,6 +32,9 @@ function assign() {
   store.assign(selected.value, owner.value)
   selected.value = []
 }
+function lastBatchOf(defect: { mileageHistory?: Array<{ batchId: string; at: string }> }): string {
+  return [...(defect.mileageHistory ?? [])].sort((a, b) => b.at.localeCompare(a.at))[0]?.batchId ?? ''
+}
 </script>
 
 <template>
@@ -38,7 +43,7 @@ function assign() {
       <article><span>超限缺陷</span><strong>{{ store.defects.length }}</strong><small>含已关闭项</small></article>
       <article><span>一级缺陷</span><strong>{{ store.defects.filter((item) => item.severity === '一级' && item.status !== '已关闭').length }}</strong><small>需限速联查</small></article>
       <article><span>待复测</span><strong>{{ store.defects.filter((item) => item.status === '待复测' || item.status === '复测不合格').length }}</strong><small>至少完成一轮复测</small></article>
-      <article><span>区段版本</span><strong>{{ store.segments.reduce((sum, item) => sum + item.version, 0) }}</strong><small>每次整治递增</small></article>
+      <article><span>检测版本待核</span><strong>{{ store.defects.filter((item) => item.versionConfidence === '待核').length }}</strong><small>旧数据无法确认，待补测批次</small></article>
     </div>
     <div class="toolbar">
       <v-text-field v-model="store.keyword" density="compact" variant="outlined" hide-details prepend-inner-icon="mdi-magnify" placeholder="搜索缺陷、区段、类型或工区" />
@@ -50,7 +55,9 @@ function assign() {
     <v-data-table v-model="selected" :headers="headers" :items="store.filtered" item-value="id" show-select density="compact" :items-per-page="12">
       <template #item.value="{ item }">{{ item.measuredValue }} / {{ item.limit }}</template>
       <template #item.severity="{ item }"><v-chip size="small" :color="item.severity === '一级' ? 'error' : item.severity === '二级' ? 'warning' : 'default'">{{ item.severity }}</v-chip></template>
-      <template #item.status="{ item }"><v-chip size="small" :color="item.status === '已关闭' ? 'success' : item.status === '复测不合格' ? 'error' : 'warning'">{{ item.status }}</v-chip></template>
+      <template #item.status="{ item }"><v-chip size="small" :color="item.status === '已关闭' ? 'success' : item.status === '复测不合格' ? 'error' : 'warning'">{{ item.status }}</v-chip><div v-if="item.retests.some((r) => r.invalidatedAt)" class="stale-line">复测结论已失效·待重算</div></template>
+      <template #item.inspectionVersion="{ item }"><v-chip size="small" :color="item.versionConfidence === '待核' ? 'warning' : 'default'">{{ item.versionConfidence === '待核' ? '待核' : item.inspectionVersionId }}</v-chip></template>
+      <template #item.batch="{ item }"><small v-if="lastBatchOf(item)">{{ lastBatchOf(item) }}</small><span v-else class="muted">—</span></template>
       <template #item.mileage="{ item }">K{{ Math.floor(item.mileage / 1000) }}+{{ String(item.mileage % 1000).padStart(3, '0') }}</template>
       <template #item.version="{ item }">V{{ item.version }}</template>
       <template #item.actions="{ item }"><v-btn size="small" variant="text" @click="router.push(`/work-orders/${item.id}`)">处置</v-btn></template>
@@ -60,4 +67,6 @@ function assign() {
 
 <style scoped>
 .query-band { display: flex; justify-content: space-between; font-size: 11px; color: #718080; margin: 0 0 10px; }
+.stale-line { color: #b18b38; font-size: 10px; margin-top: 3px; }
+.muted { color: #9aa5a5; }
 </style>

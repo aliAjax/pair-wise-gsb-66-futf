@@ -14,11 +14,11 @@ const title = computed(() => route.name === 'track' ? '区段里程与缺陷分�
       <div class="brand"><strong>轨</strong><div><b>轨道几何整治台</b><span>缺陷派工、复测与限速联查</span></div></div>
       <nav>
         <RouterLink to="/"><span>缺陷总览</span><small>{{ store.filtered.length }} 项</small></RouterLink>
-        <RouterLink to="/track"><span>里程与区段</span><small>Canvas</small></RouterLink>
-        <RouterLink to="/work-orders"><span>整治复测</span><small>{{ store.defects.filter((item) => item.status !== '已关闭').length }} 项</small></RouterLink>
+        <RouterLink to="/track"><span>里程与区段</span><small>纠偏批次 {{ store.batches.filter((b) => b.status === '生效').length }} 生效</small></RouterLink>
+        <RouterLink to="/work-orders"><span>整治复测</span><small>{{ store.defects.filter((item) => item.status !== '已关闭').length }} 项 · 复议 {{ store.reconsiderations.filter((r) => r.status === '待复议').length }}</small></RouterLink>
         <RouterLink to="/audit"><span>审计追溯</span><small>{{ store.audit.length }} 条</small></RouterLink>
       </nav>
-      <div class="aside-data"><span>数据接入</span><strong>轨检车数据已导入</strong><small>本地持久化 / 可离线补录</small></div>
+      <div class="aside-data"><span>数据接入</span><strong>轨检车补测 / 纠偏批次</strong><small>检测版本·缺陷·限速同批生效 · 本地持久化</small></div>
     </aside>
     <v-main class="shell-main">
       <header class="top"><div><span>工务调度中心 / 轨道几何</span><h1>{{ title }}</h1></div><div><small>线别</small><strong>京广上行 / 沪昆下行</strong></div></header>
